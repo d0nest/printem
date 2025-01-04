@@ -1,0 +1,31 @@
+{
+  "name": "printem",
+  "version": "1.0.0",
+  "description": "a document sharing tool!",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/d0nest/printem.git"
+  },
+  "keywords": [
+    "senddocs",
+    "printem",
+    "sanddocs",
+    "document-sharing",
+    "document",
+    "sharing"
+  ],
+  "author": "nobody",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/d0nest/printem/issues"
+  },
+  "homepage": "https://github.com/d0nest/printem#readme",
+  "dependencies": {
+    "@types/node": "^22.10.5",
+    "typeorm": "^0.3.20"
+  }
+}
