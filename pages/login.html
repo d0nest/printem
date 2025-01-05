@@ -11,23 +11,22 @@
     
  </head>
  <body>
-    <h4>warnings will appear here!</h4>
+    <h4 id="warning">warnings will appear here!</h4>
     <h2>login</h2>
-    <form>
+    <form id="form">
         <table>
             <tbody>
                 <tr>
                     <td>username:</td>
                     <td>
-                        <input name="username" type="text" size="20" autocapitalize="false" autofocus="false" autocomplete="false"
+                        <input id="username" name="username" type="text" size="20" autocapitalize="false" autofocus="false" autocomplete="false"
                                                 spellcheck="false">
                     </td>
                 </tr>
                 <tr>
                     <td>password:</td>
                     <td>
-                        <input name="password" type="text" size="20" autocapitalize="false" autofocus="false" autocomplete="false"
-                            spellcheck="false">
+                        <input id="pass" name="password" type="password" size="20">
                     </td>
                 </tr>
             </tbody>
@@ -35,6 +34,23 @@
         <br>
         <input type="submit" value="login">
         <br><br>
-        <a href="forgotPassword.html">Forgot Your Password?</a>
+        <a href="resetPassword.html">Forgot Your Password?</a>
     </form>
+    
+    <script>
+        const username = document.getElementById('username');
+        const pass = document.getElementById('pass');
+
+        document.getElementById('form').onsubmit = function (event) {
+            if (!validation()) {
+                event.preventDefault()
+                document.getElementById('warning').innerText = 'don\'t you dare leave any of those rectangular boxes empty!'
+            }
+        }
+
+        function validation() {
+            let result = false;
+            return username.value.trim() === '' || pass.value.trim() === '' ? false : true;
+        }
+    </script>
  </body>
