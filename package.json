@@ -1,31 +1,42 @@
 {
-  "name": "printem",
-  "version": "1.0.0",
-  "description": "a document sharing tool!",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/d0nest/printem.git"
-  },
-  "keywords": [
-    "senddocs",
-    "printem",
-    "sanddocs",
-    "document-sharing",
-    "document",
-    "sharing"
-  ],
-  "author": "nobody",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/d0nest/printem/issues"
-  },
-  "homepage": "https://github.com/d0nest/printem#readme",
-  "dependencies": {
-    "@types/node": "^22.10.5",
-    "typeorm": "^0.3.20"
-  }
+   "name": "printem",
+   "version": "1.0.0",
+   "description": "a document sharing tool!",
+   "main": "index.js",
+   "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1",
+      "start": "ts-node src/index.ts",
+      "typeorm": "typeorm-ts-node-commonjs"
+   },
+   "repository": {
+      "type": "git",
+      "url": "git+https://github.com/d0nest/printem.git"
+   },
+   "keywords": [
+      "senddocs",
+      "printem",
+      "sanddocs",
+      "document-sharing",
+      "document",
+      "sharing"
+   ],
+   "author": "nobody",
+   "license": "ISC",
+   "bugs": {
+      "url": "https://github.com/d0nest/printem/issues"
+   },
+   "homepage": "https://github.com/d0nest/printem#readme",
+   "dependencies": {
+      "@types/node": "^22.10.5",
+      "bcrypt": "^5.1.1",
+      "pg": "^8.4.0",
+      "reflect-metadata": "^0.1.13",
+      "typeorm": "0.3.20"
+   },
+   "devDependencies": {
+      "@types/node": "^16.11.10",
+      "ts-node": "10.9.1",
+      "typescript": "4.5.2"
+   },
+   "type": "module"
 }

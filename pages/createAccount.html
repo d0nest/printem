@@ -1,35 +1,32 @@
 <!-- create account -->
 <!DOCTYPE html>
-
+<html>
 <head>
-
     <style>
-         h4 {
+        h4 {
             margin: 0px;
             padding: 0px;
         }
     </style>
-
 </head>
 
 <body>
-    <h4 class="warning">warnings will appear here!</h4>
+    <h4 id="warning">warnings will appear here!</h4>
     <h2>create account</h2>
-    <form>
+    <form id="form">
         <table>
             <tbody>
                 <tr>
                     <td>username:</td>
                     <td>
-                        <input name="username" type="text" size="20" autocapitalize="false" autofocus="false"
+                        <input name="username" id="username" type="text" size="20" autocapitalize="false" autofocus="false"
                             autocomplete="false" spellcheck="false">
                     </td>
                 </tr>
                 <tr>
                     <td>password:</td>
                     <td>
-                        <input name="password" type="text" size="20" autocapitalize="false" autofocus="false"
-                            autocomplete="false" spellcheck="false">
+                        <input id="pass" name="password" size="20" >
                     </td>
                 </tr>
             </tbody>
@@ -37,4 +34,25 @@
         <br>
         <input type="submit" value="create account">
     </form>
+    <script>
+        const username = document.getElementById('username');
+        const pass = document.getElementById('pass');
+        const form = document.getElementById('form');
+        
+        form.onsubmit = function(event){
+            if(!validation()){
+                event.preventDefault()
+                document.getElementById('warning').innerText = 'don\'t you dare leave any of those rectangular boxes empty!'
+            }
+            console.log(form.submit());
+        }
+        
+        function validation(){
+            let result;
+            return username.value.trim() === '' || pass.value.trim() === ''? false : true;
+        }
+    </script>
+        
 </body>
+
+</html>
