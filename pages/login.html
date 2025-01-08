@@ -40,11 +40,30 @@
     <script>
         const username = document.getElementById('username');
         const pass = document.getElementById('pass');
-
-        document.getElementById('form').onsubmit = function (event) {
+        const form = document.getElementById('form');
+        
+        form.onsubmit = async function (event) {
+            event.preventDefault()
             if (!validation()) {
-                event.preventDefault()
                 document.getElementById('warning').innerText = 'don\'t you dare leave any of those rectangular boxes empty!'
+                return;
+            }
+                new FormData(form);
+        }
+        
+        form.onformdata  = async function(event) {
+            try{
+                console.log('trying submitting request')
+                const res = await fetch('http://localhost:3000/login/user', { method: 'POST', body: event.formData });
+                if (res.status === 200) {
+                    window.location.href = '/dashboard'
+                }
+                else{
+                    document.getElementById('warning').innerText = res.statusText;
+                }
+            }
+            catch(err){
+                console.error('error ', err);   
             }
         }
 

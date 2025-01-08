@@ -39,10 +39,29 @@
         const pass = document.getElementById('pass');
         const form = document.getElementById('form');
         
-        form.onsubmit = function(event){
+        form.onsubmit = async function(event){
+            event.preventDefault()
             if(!validation()){
-                event.preventDefault()
                 document.getElementById('warning').innerText = 'don\'t you dare leave any of those rectangular boxes empty!'
+            }
+            else{
+                new FormData(form);
+            }
+        }
+        
+        form.onformdata = async function(event){
+            const data = event.formData;
+            try{
+                const response = await fetch('http://localhost:3000/create/account', { method: 'POST', body: data });
+                if(response.status === 200){
+                    window.location.href = '/dashboard'
+                }
+                else{
+                    document.getElementById('warning').innerText = res.statusText;
+                }
+            }
+            catch(error){
+                console.log('error while sending create account', error);
             }
         }
         

@@ -1,35 +1,20 @@
-import { readFile } from 'node:fs';
-import http, { createServer } from 'node:http'
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { createServer } from "http";
+import { routes } from "./routes/routes.js";
+import { AppDataSource } from './build/data-source.js'
 
-const server = createServer();
+let server = createServer()
+export const dataSource = AppDataSource.initialize();
 
-const fileUrl = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(fileUrl);
-const filePath = path.join(__dirname, "pages", "createAccount.html")
-
-server.on('request', (req, res)=>{
-    if(req.url === '/'){
-        readFile(filePath, (err, content) =>{
-            if(err){
-                res.writeHead(404, { 'content-type': 'text/plain' })
-                res.end('file not found!')
-            }
-            else{
-                res.writeHead(200, { 'content-type': 'text/html' })
-                res.end(content)
-            }
-            
-        });
+server.on('request', (req,res)=>{
+    const routeHandler = routes[req.method][req.url];
+    if(routeHandler){
+        routeHandler(req,res);
     }
     else{
-        console.log(`${req.headers.host} + ${req.url}`)
+        res.end('404')
     }
-});
-
-
+})
 
 server.listen(3000, 'localhost', ()=>{
-    console.log('running of localhost:3000...')
+    console.log('listening on localhost:3000')
 })

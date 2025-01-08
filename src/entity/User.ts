@@ -1,18 +1,23 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm"
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm"
 
 @Entity()
-export class User {
+export class User extends BaseEntity{
 
-    @PrimaryGeneratedColumn()
-    id: number
-
-    @Column()
-    firstName: string
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
     @Column()
-    lastName: string
-
+    username:string;
+    
     @Column()
-    age: number
-
+    password:string;
+    
+    static async findByUsername(username:string){
+        console.log('..finding the user!')
+        return await this.createQueryBuilder('user').where('user.username = :username', { username }).getCount();
+    }
+    
+    static async findUser(username: string){
+        return await this.createQueryBuilder('user').where('user.username = :username', { username }).getOne();
+    }
 }
