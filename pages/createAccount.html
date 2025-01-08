@@ -52,8 +52,8 @@
         form.onformdata = async function(event){
             const data = event.formData;
             try{
-                const response = await fetch('http://localhost:3000/create/account', { method: 'POST', body: data });
-                if(response.status === 200){
+                const res = await fetch('http://localhost:3000/create/account', { method: 'POST', body: data });
+                if(res.status === 200){
                     window.location.href = '/dashboard'
                 }
                 else{

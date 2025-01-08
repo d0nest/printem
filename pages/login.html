@@ -55,6 +55,8 @@
             try{
                 console.log('trying submitting request')
                 const res = await fetch('http://localhost:3000/login/user', { method: 'POST', body: event.formData });
+                console.log(res.status);
+                console.log(event.formData);
                 if (res.status === 200) {
                     window.location.href = '/dashboard'
                 }

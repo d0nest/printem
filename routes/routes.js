@@ -94,7 +94,6 @@ export const routes = {
                             }
                             else {
                                 res.writeHead(333, 'username is taken!', {'content-type': 'text/plain'});
-                                
                                 console.log('username is taken!')
                                 res.end('username is taken!');
                             }
@@ -120,8 +119,10 @@ export const routes = {
                     }
                     try{
                         const user = await User.findUser(fields.username[0]);
-                        if(user){                            
-                            if(compareThem(fields.password[0], user.password)){
+                        if(user){
+                            const passMatch = await compareThem(fields.password[0], user.password);
+                            console.log(passMatch)                            
+                            if(passMatch){
                                 try{
                                     const token = await jwt.generateAR({userid:user.userid, username: user.username});
                                     res.setHeader('Set-Cookie', `user=${token.access_token}; secure; path=/; SameSite=Lax;`)
