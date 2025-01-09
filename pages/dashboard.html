@@ -7,6 +7,24 @@
         </ul>
     </body>
     <script>
-
+        document.addEventListener('DOMContentLoaded',  async (event) => {
+            try {
+                const response = await fetch('dashboard/data');
+                if (response.status === 403) {
+                   
+                }
+                else {
+                    const element = document.createElement('li');
+                    element.innerText = response.statusText
+                    document.getElementById('docs').append(element)
+                    console.log(response.statusText);
+                    
+                    console.log(await response.json())
+                }
+            }
+            catch (error) {
+                console.log('error', error);
+            }   
+        });
     </script>
 </html>

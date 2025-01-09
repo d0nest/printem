@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+    <head></head>
+    <body>
+        <h1>send your documents to, the other side of the desk!</h1>
+        <input id='selectFiles' size="50" type="file" name="send your documents to printing shop x" multiple>
+    </body>
+    <script>
+        const selectFiles = document.getElementById('selectFiles'); 
+            selectFiles.onchange = async function (event) {
+                const form = new FormData();
+                const files = event.target.files; 
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    form.append('files', file); 
+                }
+                
+                if(files.length === 0){
+                    console.log('no files are selected!')
+                    return;
+                }
+                else{
+                    const pathname = window.location.search;
+                    const user = new URLSearchParams(pathname).get('username')
+                    if (user) {
+                        try {
+                            console.log(form)
+                            const data = await fetch('http://localhost:3000/upload/documents/data', { method: 'POST', body: form, headers: { 'user': user } })
+                        }
+                        catch (error) {
+                            console.log('error making fetch to upload docs', error)
+                        }
+                    }
+                    else {
+                        console.log('user is missing!')
+                    }   
+                }
+            };
+    </script>
+</html>

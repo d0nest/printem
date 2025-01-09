@@ -7,6 +7,7 @@ import { dataSource } from '../index.js';
 import { compareThem, hashIt } from '../utilities/bcrypt.js';
 import * as jwt from '../utilities/jwt.js'
 import { getFileContent } from '../utilities/files.js';
+import url from 'url'
 
 const fileUrl = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(fileUrl);
@@ -29,7 +30,6 @@ export const routes = {
                     res.writeHead(200, { 'content-type': 'text/html' })
                     res.end(content)
                 }
-
             });
         },
         
@@ -47,17 +47,84 @@ export const routes = {
         '/dashboard':async (req,res)=>{
             // console.log(req.getHeader('cookie'))
             const cookie = req.headers['cookie'];
+            if(!cookie){
+                res.writeHead(403, 'unauthorized');
+                res.end('go to login page')
+            }
             const sliced = cookie.slice(cookie.indexOf('=') + 1)
-            const letEmGo = await jwt.verifyA(sliced);
-            const content = await getFileContent('dashboard.html')
-            console.log(letEmGo)
+            try{
+                const letEmGo = await jwt.verifyA(sliced);
+                const content = await getFileContent('dashboard.html')
+                console.log(letEmGo)
 
-            res.setHeader('content-type', 'text/html');
-            res.writeHead(200)
-            res.end(content)
+                res.setHeader('content-type', 'text/html');
+                res.writeHead(200, { 'username': letEmGo.username })
+                res.end(content)
+            }
+            catch(error){
+                console.log(error);
+                res.writeHead(403, 'token expired!');
+                const content = await getFileContent('login.html')
+                res.end(content)
+            }
+        },
+        '/dashboard/data': async (req,res)=>{
+            const cookie = req.headers['cookie'];
+            if(!cookie){
+                res.writeHead(403, 'unable to fetch data, no access_token provided');
+                res.end('no access token found');
+            }
+            
+            const sliced = cookie.slice(cookie.indexOf('=') + 1)
+            const user = await jwt.verifyA(sliced);
+            //show data here
+            res.writeHead(200, 'user data!', {'content-type': 'application/json'})
+            res.end(JSON.stringify(user));
+        },
+        '/upload/documents': async (req, res) =>{
+            // const url = new URL('http://' + req.headers.host + req.url);
+            
+            // const user = url.searchParams.get('username');
+            
+            try{
+                const file = await getFileContent('uploadDocuments.html');
+                // res.setHeader('url', `/upload/documents?username=${user}`)
+                res.writeHead(200,"upload?");
+                res.end(file);
+            }
+            catch(error){
+                console.log('error reading upload docs file', error);
+            }
         }
     },
     'POST': {
+        '/upload/documents/data': async (req, res)=>{
+            try{
+                const user = await User.findUser(req.headers.user);
+                if(user){
+                    console.log(`store documents for sir ${req.headers.user}`)
+                    form.parse(req, (err, fields, files) => {
+                        if (err) {
+                            res.writeHead(333, 'error parsing files!');
+                            res.end('internal server error');
+                        }
+                        else {
+                            //upload these files
+                            console.log(files)
+                        }
+                    })
+                }
+                else{
+                    res.writeHead(333, 'user not found to upload documents')
+                    res.end('user not found to upload documents!')
+                    console.log('user not found to upload documents')
+                }
+            }
+            catch(err){
+                console.log('error', err);
+            }                
+        },
+        
         '/create/account':  (req, res)=>{
             try{
                 form.parse(req, async (err, fields, files) => {
@@ -78,8 +145,8 @@ export const routes = {
                                     console.log(created)
                                     if (created) {
                                         try {
-                                            const tokens = await jwt.generateAR({ userid: created.userid, username: created.username });
-                                            res.setHeader('Set-Cookie', `user=${tokens.access_token}; path=/; Secure; SameSite=Lax`)
+                                            const token = await jwt.generateAR({ userid: created.userid, username: created.username });
+                                            res.setHeader('Set-Cookie', `user=${token.access_token}; path=/; Secure; SameSite=Lax`)
                                             res.writeHead(200, {'content-type': 'text/plain'})
                                             res.end('user is created!')
                                         }
@@ -121,10 +188,9 @@ export const routes = {
                         const user = await User.findUser(fields.username[0]);
                         if(user){
                             const passMatch = await compareThem(fields.password[0], user.password);
-                            console.log(passMatch)                            
                             if(passMatch){
                                 try{
-                                    const token = await jwt.generateAR({userid:user.userid, username: user.username});
+                                    const token = await jwt.generateAR({userid: user.userid, username: user.username});
                                     res.setHeader('Set-Cookie', `user=${token.access_token}; secure; path=/; SameSite=Lax;`)
                                     res.writeHead(200,'login successful!', {'content-type': 'text/plain'});
                                     res.end('login successful!')
