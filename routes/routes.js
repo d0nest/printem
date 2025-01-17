@@ -1,13 +1,12 @@
-import { User } from '../build/entity/User.js'
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { readFile } from 'fs';
+import { createReadStream, readFile, rename } from 'fs';
 import formidable from 'formidable';
-import { dataSource } from '../index.js';
 import { compareThem, hashIt } from '../utilities/bcrypt.js';
 import * as jwt from '../utilities/jwt.js'
-import { getFileContent } from '../utilities/files.js';
-import url from 'url'
+import { getFileContent, getRootDir } from '../utilities/files.js';
+import {User} from '../build/entity/User.js'
+import { Document } from '../build/entity/Documents.js';
 
 const fileUrl = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(fileUrl);
@@ -18,7 +17,6 @@ const form = formidable();
 
 
 export const routes = {
-    
     'GET': {
         '/': (req,res)=>{
             readFile(filePath, (err, content) => {
@@ -47,28 +45,36 @@ export const routes = {
         '/dashboard':async (req,res)=>{
             // console.log(req.getHeader('cookie'))
             const cookie = req.headers['cookie'];
-            if(!cookie){
+            if(!cookie || cookie === undefined){
                 res.writeHead(403, 'unauthorized');
                 res.end('go to login page')
             }
-            const sliced = cookie.slice(cookie.indexOf('=') + 1)
-            try{
-                const letEmGo = await jwt.verifyA(sliced);
-                const content = await getFileContent('dashboard.html')
-                console.log(letEmGo)
+            else{
+                const sliced = cookie.slice(cookie.indexOf('=') + 1)
+                try {
+                    const letEmGo = await jwt.verifyA(sliced);
+                    const content = await getFileContent('dashboard.html')
+                    console.log(letEmGo)
 
-                res.setHeader('content-type', 'text/html');
-                res.writeHead(200, { 'username': letEmGo.username })
-                res.end(content)
-            }
-            catch(error){
-                console.log(error);
-                res.writeHead(403, 'token expired!');
-                const content = await getFileContent('login.html')
-                res.end(content)
+                    res.setHeader('content-type', 'text/html');
+                    res.writeHead(200, { 'username': letEmGo.username })
+                    res.end(content)
+                }
+                catch (error) {
+                    console.log(error);
+                    res.writeHead(403, 'token expired!');
+                    const content = await getFileContent('login.html')
+                    res.end(content)
+                }   
             }
         },
         '/dashboard/data': async (req,res)=>{
+            const query = new URL(req.url, 'http://localhost').searchParams;
+            console.log(query)
+            const offset = query.get('offset');
+            const limit = query.get('limit');
+            
+            console.log(offset, limit);
             const cookie = req.headers['cookie'];
             if(!cookie){
                 res.writeHead(403, 'unable to fetch data, no access_token provided');
@@ -77,9 +83,25 @@ export const routes = {
             
             const sliced = cookie.slice(cookie.indexOf('=') + 1)
             const user = await jwt.verifyA(sliced);
+            const documents = await Document.bringLimitedDocumentsFromUser(offset, limit, user.username)
+            res.writeHead(200, 'user data!', { 'content-type': 'application/json' })
+            res.end(JSON.stringify(documents));
+            
+            // console.log(u);
+
+            // if(u.document !== undefined){
+            //     for (let d of u.document) {
+            //         dString += d.originalFilename + '\n';
+            //     }
+            // }
             //show data here
-            res.writeHead(200, 'user data!', {'content-type': 'application/json'})
-            res.end(JSON.stringify(user));
+        },
+        '/download': async(req,res)=>{
+            const readStream = createReadStream(path.join(getRootDir(), 'files', req.url.slice(10)));
+            readStream.on('open', ()=>{
+                res.writeHead(200, {'content-type': 'application/octet-stream'})
+                readStream.pipe(res);
+            })
         },
         '/upload/documents': async (req, res) =>{
             // const url = new URL('http://' + req.headers.host + req.url);
@@ -100,7 +122,8 @@ export const routes = {
     'POST': {
         '/upload/documents/data': async (req, res)=>{
             try{
-                const user = await User.findUser(req.headers.user);
+                // const user = await User.findUser(req.headers.user);
+                const user = await User.findOne({where: {username: req.headers.user}, relations: ['document']})
                 if(user){
                     console.log(`store documents for sir ${req.headers.user}`)
                     form.parse(req, (err, fields, files) => {
@@ -109,8 +132,49 @@ export const routes = {
                             res.end('internal server error');
                         }
                         else {
-                            //upload these files
-                            console.log(files)
+                            for(let i = 0 ; i < files.files.length; i++){
+                                const newPath = path.join(getRootDir(), 'files', files.files[i].originalFilename)
+                                rename(files.files[i].filepath, newPath, async (err)=>{
+                                    if(err){
+                                        console.log('error saving files to other location',err)
+                                    }
+                                    else{
+                                        console.log('file is saved to a safe vault!')
+                                        // console.log(files.files[i].originalFilename)
+                                        // console.log(`${files.files[i].originalFilename} ${files.files[i].newFilename}}`)
+                                        const document = new Document()
+                                        
+                                        document.originalFilename = files.files[i].originalFilename;
+                                        document.newFilename = files.files[i].newFilename;
+                                        document.mimeType = files.files[i].mimetype;
+                                        document.size = files.files[i].size;
+                                        document.filePath = newPath;
+                                        document.user = user;
+                                        try{
+                                            const savedDoc = await Document.save(document)
+                                            if(user.document === undefined){
+                                                user.document = [];
+                                            }
+                                            user.document.push(savedDoc);
+                                            
+                                            const updatedUser = await User.save(user);
+                                            console.log('user has documents', updatedUser);
+                                            console.log('user from database:', await User.find({relations: ['document']}))
+                                            // console.log('document', await Document.find({relations: ['user']}))
+                                            res.writeHead(200, 'uploaded successfully');
+                                            res.end();
+                                        }
+                                        catch(err){
+                                            console.log(err);
+                                            res.writeHead(333,'upload failed!')
+                                            res.end();
+                                        }
+                                        // console.log(files.files[i])
+                                    }
+                                })
+                                files.files[i].filepath = getRootDir() + 'files'
+                                console.log(files.files[i].filepath)
+                            }
                         }
                     })
                 }
@@ -141,6 +205,7 @@ export const routes = {
                                     const hash = await hashIt(fields.password[0])
                                     user.username = fields.username[0];
                                     user.password = hash;
+                                    user.document = [];
                                     let created = await User.save(user)
                                     console.log(created)
                                     if (created) {

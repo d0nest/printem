@@ -2,12 +2,15 @@ import { readFile } from "fs/promises";
 import { fileURLToPath } from "url";
 import path from "path";
 
-const fileUrl = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(fileUrl);
-const rootDir = path.resolve(__dirname, '..');
+export function getRootDir(){
+    const fileUrl = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(fileUrl);
+    return path.resolve(__dirname, '..');    
+}
+
 
 export async function getFileContent(fileName){
-    const filePath = path.join(rootDir, "pages", fileName)
+    const filePath = path.join(getRootDir(), "pages", fileName)
     try{
         const fileContent = await readFile(filePath, 'utf-8');
         return fileContent;
@@ -16,4 +19,8 @@ export async function getFileContent(fileName){
         console.log(`error reading file ${fileName}`,err);
         return null;
     }
+}
+
+export function moveFile(files){
+
 }

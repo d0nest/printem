@@ -4,4 +4,4 @@ node_modules/
 build/
 tmp/
 temp/
-.secrets.js
+.secrets.js/

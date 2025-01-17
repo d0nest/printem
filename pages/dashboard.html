@@ -1,30 +1,63 @@
 <!DOCTYPE html>
 <html>
-    <body>
-        <h1>dashboard</h1>
-        <ul id="docs">
-            
-        </ul>
-    </body>
+    <head><style> li { border: 2px solid black; padding: 10px; margin: 10px; }</style></head>
+    <body><h1>dashboard</h1>
+    <ul id="doc-list">
+        
+    </ul></body>
     <script>
+        let offset = 0;
+        let limit = 15;
+        
+        window.onscroll = function(event){
+            const cords = document.documentElement.getBoundingClientRect();
+            
+            if(cords.bottom <= document.documentElement.clientHeight + 50){
+                getData();
+                console.log('bottom reached')
+            }
+        }
+        
+        async function getData(){
+            try{
+                const data = await fetch(`http://localhost:3000/dashboard/data?offset=${offset}&limit=${limit}`)
+                createList(data);
+                offset += limit;
+            }
+            catch(error){
+                console.log('error at dashboard/data?offset&limit', error);
+            }
+        }
+        
         document.addEventListener('DOMContentLoaded',  async (event) => {
             try {
-                const response = await fetch('dashboard/data');
+                const response = await fetch(`dashboard/data?offset=${offset}&limit=${limit}`);
                 if (response.status === 403) {
-                   
+                    
                 }
                 else {
-                    const element = document.createElement('li');
-                    element.innerText = response.statusText
-                    document.getElementById('docs').append(element)
-                    console.log(response.statusText);
-                    
-                    console.log(await response.json())
+                   createList(response);
+                    offset += limit;                  
                 }
             }
             catch (error) {
                 console.log('error', error);
             }   
         });
+        
+        function createList(response){
+             response.json().then(data => {
+                data.forEach(element => {
+                    const a = document.createElement('a');
+                    const li = document.createElement('li');
+                    
+                    a.href = `http://localhost:3000/download/${element.originalFilename}`;
+                    a.textContent = element.originalFilename + " date: " + element.createdAt;
+                    li.appendChild(a);
+                    document.getElementById('doc-list').appendChild(li);
+                    console.log(element.filepath, element.originalFilename);
+                });
+            });
+        }
     </script>
 </html>

@@ -1,15 +1,22 @@
 import { createServer } from "http";
 import { routes } from "./routes/routes.js";
-import { AppDataSource } from './build/data-source.js'
 import { URL } from "url";
+import { AppDataSource } from "./build/data-source.js";
 
-let server = createServer()
-export const dataSource = AppDataSource.initialize();
+
+let server = createServer();
+export const dataSource = AppDataSource.initialize().then(()=>{
+    console.log('connected to database')
+})
 
 server.on('request', (req,res)=>{
-    const url = new URL('https://' + req.headers.host + req.url); 
-
-    const routeHandler = routes[req.method][url.pathname];
+    const url = new URL('https://' + req.headers.host + req.url);
+    let routeHandler = routes[req.method][url.pathname];
+    
+    if (url.pathname.includes('download')) {
+         routeHandler = routes[req.method]['/download'];
+    }
+    
     if(routeHandler){
         routeHandler(req,res);
     }

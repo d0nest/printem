@@ -7,9 +7,14 @@
       "module": "ESNext",
       "moduleResolution": "node",
       "rootDir": "./src",
-      "outDir": "./build",
+      "outDir": "build",
       "emitDecoratorMetadata": true,
       "experimentalDecorators": true,
-      "sourceMap": true
+      "sourceMap": true,
+      "plugins": [{"transform": "typescript-transform-paths"},
+         {
+            "transform": "typescript-transform-paths",
+            "afterDeclarations": true
+         }]
    }
 }
